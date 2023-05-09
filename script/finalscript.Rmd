@@ -1,0 +1,111 @@
+---
+title: "Final_IndProj"
+author: "Chloe"
+date: "2023-05-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **Introduction**
+
+Today I will present a series of plots that show music trends across several different genres. 
+
+## Load Libraries 
+```{r}
+library(patchwork)
+library(tidyverse)
+library(ggrepel)
+library(here)
+library(PNWColors)
+library(gganimate)
+```
+
+## Inspect Data 
+```{r, na.rm=TRUE}
+MusicData<-read.csv("https://raw.githubusercontent.com/tanul-mathur/music-through-the-ages/master/data/df_wclusters.csv")
+TwitterArtists<-read.csv("https://raw.githubusercontent.com/daniel-hult/The-Popularity-Project/main/Other%20Files/most_popular_artists.csv")
+
+```
+
+## Patchwork Plot Using Filtered Music Data 
+```{r, patchplot}
+filtermusic2<- MusicData %>% 
+  filter(year==2002) %>% #filter MusicData 
+  filter(X > 3200 , X < 3205)
+p3<-filtermusic2 %>% 
+  ggplot(aes(x = search_artist, y = track_popularity, color  = danceability, label = rownames(filtermusic2))) + 
+  geom_text_repel() +
+  geom_point() +
+  labs(x = "Artist", 
+       y = "Track Popularity", 
+       color = "Danceability")+
+  ggtitle("2002")+ 
+  theme(plot.title = element_text(size = 12,hjust = 0.5), 
+         panel.background = element_rect(fill = "lavender"))
+
+p3 
+
+newmusic2<-MusicData %>% 
+  filter(year==2020) %>% #filter MusicData 
+  filter(X > 5000, X < 5004)
+p4<-newmusic2 %>% 
+  ggplot(aes(x = search_artist, y = track_popularity, color = danceability, label = rownames(newmusic2))) + 
+  geom_text_repel() + 
+  geom_point() + 
+  labs(x = "Artist", 
+       y = "Track Popularity", 
+       color = "Danceability")+
+  ggtitle("2020") + 
+  theme(plot.title = element_text(size = 12,hjust = 0.5), 
+        panel.background = element_rect(fill = "lavender"))
+
+p4
+
+p3/p4 +  
+  plot_annotation(tag_levels = 'I') 
+
+ggsave(here("Chloe_Independent_Project", "output",  "patchplot.png"))
+```
+
+
+## Jitter Plot Using Music Data
+```{r, jitterplot}
+pal<-pnw_palette("Sunset2",3, type = "discrete") #color palette  
+MusicData %>% 
+  ggplot(aes(x = danceability, y = clusters, color  = track_rank, label = rownames(MusicData))) +
+  labs(x = "Danceability", 
+       y = "Clusters", 
+       color = "Track Rank")+
+  geom_jitter()+
+  ggtitle("Music Popularity Based on Clusters, Track Rank, and Danceability")+
+  theme(plot.title = element_text(size = 12,hjust = 0.5), 
+        panel.background = element_rect(fill = "lavender")) + 
+  transition_states( 
+    year, 
+    transition_length = 2, 
+    state_length = 1 
+  )
+
+anim_save(here("Chloe_Independent_Project", "output",  "jitterplot.gif")) #save as animation
+```
+
+ Using Twitter Data
+```{r, twitterplot}
+TwitterArtists %>% 
+  ggplot(aes(x = streak, fill = artist, label = rownames(TwitterArtists))) + 
+  geom_histogram()+ 
+  ggtitle("Trending Music Artists on Twitter")+
+  labs(x = "Streak", 
+       y = "Count", 
+       fill = "Artist") + 
+  theme_bw() + 
+  theme(axis.title = element_text(color = "black"),
+        panel.background = element_rect(fill = "beige"),
+        plot.title = element_text(hjust = 0.5, color = "black", face = "bold"))
+
+ggsave(here("Chloe_Independent_Project", "output",  "twitterplot.png"))
+```
+
